@@ -7,19 +7,49 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+out/
+
+# dotenv environment files
+.env
+.env.*
+!.env.example
+
+# Local envs
 *.local
 
 # Editor directories and files
-.vscode/*
+.vscode/
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-README.md
+
+# Test coverage
+coverage/
+
+# Package archives
+*.tgz
+*.zip
+
+# OS / misc
+Thumbs.db
+
+# Remove only if you don’t want to track your README
+# README.md
