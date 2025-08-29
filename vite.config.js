@@ -1,7 +1,13 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react' // usa vue() si es Vue
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/TFG-OlivIA2/'   // <-- ruta del repo
+  base: '/TFG-OlivIA2/',
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  }
 })
