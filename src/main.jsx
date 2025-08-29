@@ -9,7 +9,7 @@
 
 
 import React from "react";
-import { Provider } from "@/components/ui/Provider"
+import { Provider } from "@/components/ui/Provider.jsx"
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
