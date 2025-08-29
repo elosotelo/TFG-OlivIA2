@@ -1,13 +1,7 @@
-import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-// import tailwindcss from '@tailwindcss/vite'
-import tsconfigPaths from "vite-tsconfig-paths"
+import react from '@vitejs/plugin-react' // usa vue() si es Vue
 
-// https://vite.dev/config/
 export default defineConfig({
-  base: "/OlivIA-TFG-24-25/",
-  plugins: [
-    // tailwindcss(),
-    react(), tsconfigPaths()
-  ],
+  plugins: [react()],
+  base: '/TFG-OlivIA2/'   // <-- ruta del repo
 })
