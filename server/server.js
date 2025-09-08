@@ -7,27 +7,31 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const GROQ_URL = process.env.GROQ_URL || "https://api.groq.com/openai/v1/chat/completions";
-const isProd = process.env.NODE_ENV === "production";
 
-// CORS (abierto en dev; allowlist en prod)
-const allowlist = ["http://localhost:5173", "https://elosotelo.github.io"];
-app.use(cors(isProd ? {
-  origin: (origin, cb) => (!origin || allowlist.some(o => origin.startsWith(o))) ? cb(null, true) : cb(new Error("Not allowed by CORS"))
-} : undefined));
+// CORS amplio para pruebas (luego lo restringes a tu dominio)
+app.use(cors());
 
-// Logs
-app.use((req, _res, next) => { if (!isProd) console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`); next(); });
+// Log de cada request
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(express.json({ limit: "1mb" }));
-
-app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.post("/api/groq/chat", async (req, res) => {
   try {
-    if (!process.env.GROQ_API_KEY) return res.status(500).json({ error: "Server misconfigured: missing GROQ_API_KEY" });
-    if (!isProd) console.log("▶️ Body recibido:", JSON.stringify(req.body).slice(0, 200) + "...");
+    // Confirma que la clave está cargada (ocultando casi todo)
+    if (!process.env.GROQ_API_KEY) {
+      console.error("❌ GROQ_API_KEY no definida");
+      return res.status(500).json({ error: "Server misconfigured: missing GROQ_API_KEY" });
+    } else {
+      console.log("🔐 GROQ_API_KEY cargada (ok)");
+    }
 
-    const response = await fetch(GROQ_URL, {
+    console.log("▶️ Body recibido:", JSON.stringify(req.body).slice(0, 200) + "...");
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -37,6 +41,9 @@ app.post("/api/groq/chat", async (req, res) => {
     });
 
     const text = await response.text();
+    console.log("⬅️ Respuesta Groq status:", response.status);
+
+    // Pasa tal cual la respuesta de Groq
     res.status(response.status).type(response.headers.get("content-type") || "application/json").send(text);
   } catch (err) {
     console.error("💥 Groq proxy error:", err);
@@ -44,4 +51,16 @@ app.post("/api/groq/chat", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`✅ Backend corriendo en http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Backend corriendo en http://localhost:${PORT}`);
+});
+
+const allowed = ["http://localhost:5173", "https://elosotelo.github.io"];
+app.use(cors({
+  origin: (origin, cb) => (!origin || allowed.includes(origin)) ? cb(null, true) : cb(new Error("Not allowed by CORS")),
+  methods: ["GET","POST","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"]
+}));
+app.options("*", cors());
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
