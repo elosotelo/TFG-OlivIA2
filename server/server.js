@@ -6,6 +6,7 @@ const path = require("path");
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 app.get("/health", (_req, res) => {
@@ -14,7 +15,16 @@ app.get("/health", (_req, res) => {
 
 
 // CORS amplio para pruebas (luego lo restringes a tu dominio)
-app.use(cors());
+const allowlist = [
+  "http://localhost:5173",
+  "https://elosotelo.github.io",          // GitHub Pages (dominio)
+];
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowlist.some(o => origin.startsWith(o))) return cb(null, true);
+    return cb(new Error("Not allowed by CORS"));
+  }
+}));
 
 // Log de cada request
 app.use((req, res, next) => {
