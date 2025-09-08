@@ -43,9 +43,9 @@ const fetchIA = async ({
 // === FETCH DE GROQ ===
 export const fetchFromGroq = (messages) => {
   return fetchIA({
-    url: `${import.meta.env.VITE_API_BASE_URL}/api/groq/chat`, // ← usa la variable
+    url: `${import.meta.env.VITE_API_BASE_URL}/api/groq/chat`,
     model: "meta-llama/llama-4-scout-17b-16e-instruct",
-    apiKey: "", // ← nunca mandes la clave desde el cliente
+    apiKey: "",             // jamás mandes la clave desde el cliente
     messages
   });
 };

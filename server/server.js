@@ -57,10 +57,12 @@ app.listen(PORT, () => {
 
 const allowed = ["http://localhost:5173", "https://elosotelo.github.io"];
 app.use(cors({
-  origin: (origin, cb) => (!origin || allowed.includes(origin)) ? cb(null, true) : cb(new Error("Not allowed by CORS")),
+  origin: (origin, cb) =>
+    !origin || allowed.includes(origin) ? cb(null, true) : cb(new Error("Not allowed by CORS")),
   methods: ["GET","POST","OPTIONS"],
   allowedHeaders: ["Content-Type","Authorization"]
 }));
 app.options("*", cors());
-app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/health", (_req,res)=>res.json({ok:true}));
+
 
