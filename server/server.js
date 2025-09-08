@@ -8,6 +8,13 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+// (debajo de const PORT...)
+console.log("🔎 has GROQ_API_KEY?", !!process.env.GROQ_API_KEY);
+// Ruta de diagnóstico temporal
+app.get("/envcheck", (_req, res) => {
+  res.json({ hasGroq: !!process.env.GROQ_API_KEY });
+});
+
 
 // ---- CORS (lista blanca) ----
 const allowed = ["http://localhost:5173", "https://elosotelo.github.io"];
