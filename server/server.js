@@ -1,3 +1,4 @@
+// server/server.js
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -8,39 +9,33 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ===== CORS =====
+// ---- CORS (lista blanca) ----
 const allowed = ["http://localhost:5173", "https://elosotelo.github.io"];
+app.use(
+  cors({
+    origin: (origin, cb) =>
+      !origin || allowed.includes(origin) ? cb(null, true) : cb(new Error("Not allowed by CORS")),
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+// No registres app.options("/*") ni app.options("*") en Express 5
 
-app.use(cors({
-  origin: (origin, cb) =>
-    !origin || allowed.includes(origin)
-      ? cb(null, true)
-      : cb(new Error("Not allowed by CORS")),
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
-
-// manejar preflight requests
-app.options("/*", cors());
-
-// ===== Logging =====
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] Origin: ${req.headers.origin} ${req.method} ${req.url}`);
+// ---- Logging ----
+app.use((req, _res, next) => {
+  console.log(`[${new Date().toISOString()}] Origin:${req.headers.origin || "-"} ${req.method} ${req.url}`);
   next();
 });
 
 app.use(express.json({ limit: "1mb" }));
 
-// ===== Endpoint proxy a Groq =====
+// ---- Proxy a Groq ----
 app.post("/api/groq/chat", async (req, res) => {
   try {
     if (!process.env.GROQ_API_KEY) {
       console.error("❌ GROQ_API_KEY no definida");
       return res.status(500).json({ error: "Server misconfigured: missing GROQ_API_KEY" });
-    } else {
-      console.log("🔐 GROQ_API_KEY cargada (ok)");
     }
-
     console.log("▶️ Body recibido:", JSON.stringify(req.body).slice(0, 200) + "...");
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -55,8 +50,7 @@ app.post("/api/groq/chat", async (req, res) => {
     const text = await response.text();
     console.log("⬅️ Respuesta Groq status:", response.status);
 
-    res
-      .status(response.status)
+    res.status(response.status)
       .type(response.headers.get("content-type") || "application/json")
       .send(text);
   } catch (err) {
@@ -65,10 +59,9 @@ app.post("/api/groq/chat", async (req, res) => {
   }
 });
 
-// ===== Healthcheck =====
+// ---- Healthcheck ----
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-// ===== Start =====
 app.listen(PORT, () => {
   console.log(`✅ Backend corriendo en http://localhost:${PORT}`);
 });
