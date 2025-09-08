@@ -8,6 +8,11 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.get("/health", (_req, res) => {
+  res.json({ ok: true });
+});
+
+
 // CORS amplio para pruebas (luego lo restringes a tu dominio)
 app.use(cors());
 
