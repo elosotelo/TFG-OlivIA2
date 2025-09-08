@@ -16,10 +16,10 @@ const fetchIA = async ({
         const res = await fetch(url, {
             method: "POST",
             headers: {
-            "Content-Type": "application/json",
-            ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-            ...headers
-            },
+  "Content-Type": "application/json",
+  ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+  ...headers
+},
 
             body: JSON.stringify({
                 model,
@@ -43,13 +43,12 @@ const fetchIA = async ({
 // === FETCH DE GROQ ===
 export const fetchFromGroq = (messages) => {
   return fetchIA({
-    url: "http://localhost:3000/api/groq/chat", // 👈 tu backend
+    url: `${import.meta.env.VITE_API_BASE_URL}/api/groq/chat`, // ← usa la variable
     model: "meta-llama/llama-4-scout-17b-16e-instruct",
-    apiKey: "", // 👈 vacío: no enviar Authorization desde el cliente
+    apiKey: "", // ← nunca mandes la clave desde el cliente
     messages
   });
 };
-
 
 
 // === AQUÍ PUEDES IR AÑADIENDO MÁS ===
