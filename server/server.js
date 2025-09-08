@@ -8,20 +8,32 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS amplio para pruebas (luego lo restringes a tu dominio)
-app.use(cors());
+// ===== CORS =====
+const allowed = ["http://localhost:5173", "https://elosotelo.github.io"];
 
-// Log de cada request
+app.use(cors({
+  origin: (origin, cb) =>
+    !origin || allowed.includes(origin)
+      ? cb(null, true)
+      : cb(new Error("Not allowed by CORS")),
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+// manejar preflight requests
+app.options("/*", cors());
+
+// ===== Logging =====
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log(`[${new Date().toISOString()}] Origin: ${req.headers.origin} ${req.method} ${req.url}`);
   next();
 });
 
 app.use(express.json({ limit: "1mb" }));
 
+// ===== Endpoint proxy a Groq =====
 app.post("/api/groq/chat", async (req, res) => {
   try {
-    // Confirma que la clave está cargada (ocultando casi todo)
     if (!process.env.GROQ_API_KEY) {
       console.error("❌ GROQ_API_KEY no definida");
       return res.status(500).json({ error: "Server misconfigured: missing GROQ_API_KEY" });
@@ -43,26 +55,20 @@ app.post("/api/groq/chat", async (req, res) => {
     const text = await response.text();
     console.log("⬅️ Respuesta Groq status:", response.status);
 
-    // Pasa tal cual la respuesta de Groq
-    res.status(response.status).type(response.headers.get("content-type") || "application/json").send(text);
+    res
+      .status(response.status)
+      .type(response.headers.get("content-type") || "application/json")
+      .send(text);
   } catch (err) {
     console.error("💥 Groq proxy error:", err);
     res.status(500).json({ error: "Proxy error" });
   }
 });
 
+// ===== Healthcheck =====
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+// ===== Start =====
 app.listen(PORT, () => {
   console.log(`✅ Backend corriendo en http://localhost:${PORT}`);
 });
-
-const allowed = ["http://localhost:5173", "https://elosotelo.github.io"];
-app.use(cors({
-  origin: (origin, cb) =>
-    !origin || allowed.includes(origin) ? cb(null, true) : cb(new Error("Not allowed by CORS")),
-  methods: ["GET","POST","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"]
-}));
-app.options("*", cors());
-app.get("/health", (_req,res)=>res.json({ok:true}));
-
-
